@@ -8,7 +8,7 @@ const DummyTarget = preload("res://scripts/dummy_target.gd")
 const HurricanLevelLoader = preload("res://scripts/hurrican_level_loader.gd")
 const HurricanLevelData = preload("res://scripts/hurrican_level_data.gd")
 
-@export var level_path: String = "res://assets/levels/tutorial.map"
+@export var level_path: String = "res://assets/levels/jungle.map"
 
 var player: HurricanPlayer
 var hud: HurricanHUD

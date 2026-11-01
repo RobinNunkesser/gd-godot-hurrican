@@ -54,6 +54,16 @@ func _test_bullet() -> bool:
 	assert(bounce_bullet.weapon_type == HurricanConfig.WeaponType.BOUNCE, "Bounce bullet type mismatch")
 	assert(bounce_bullet.bounces_left > 0, "Bounce bullet should have bounces")
 	
+	# Friendly fire test
+	var player = HurricanPlayer.new()
+	root.add_child(player)
+	player._ready()
+	var initial_hp = player.health
+	bounce_bullet.shooter = player
+	bounce_bullet._on_body_entered(player)
+	assert(player.health == initial_hp, "Bullet should NEVER damage the player (friendly fire protection)")
+	
+	player.queue_free()
 	spread_bullet.queue_free()
 	bounce_bullet.queue_free()
 	print("  -> HurricanBullet OK.")
@@ -215,6 +225,8 @@ func _test_main_scene() -> bool:
 	assert(game.player != null, "Game should have player instance")
 	assert(game.hud != null, "Game should have HUD instance")
 	assert(game.camera != null, "Game should have Camera2D instance")
+	assert(game.level_path == "res://assets/levels/jungle.map", "Default level should be jungle.map (Level 1)")
+	assert(game.active_level_data != null, "Active level data should be loaded")
 	
 	game.queue_free()
 	print("  -> MainHurricanGame Full Orchestration OK.")

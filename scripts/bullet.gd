@@ -13,6 +13,7 @@ var max_bounces: int = 4
 var bounces_left: int = 0
 var lifetime: float = HurricanConfig.BULLET_LIFETIME
 
+var shooter: Node2D = null
 var sprite: Sprite2D
 var collision_shape: CollisionShape2D
 
@@ -23,8 +24,8 @@ func _init(type: HurricanConfig.WeaponType = HurricanConfig.WeaponType.SPREAD, d
 
 func _ready() -> void:
 	name = "Bullet"
-	collision_layer = 4 # Projectiles
-	collision_mask = 1 | 2 # World & Enemies
+	collision_layer = HurricanConfig.COLLISION_LAYER_PROJECTILES # 8
+	collision_mask = HurricanConfig.COLLISION_LAYER_WORLD | HurricanConfig.COLLISION_LAYER_ENEMIES # 1 | 4 (Only hits World & Enemies)
 	
 	collision_shape = CollisionShape2D.new()
 	var circle = CircleShape2D.new()
@@ -61,6 +62,10 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
+	# Niemals die eigene Spielfigur treffen
+	if body == shooter or body.name.begins_with("Player"):
+		return
+		
 	if weapon_type == HurricanConfig.WeaponType.BOUNCE and bounces_left > 0:
 		bounces_left -= 1
 		# Einfache Reflexion (horizontal/vertikal je nach Überlappung)

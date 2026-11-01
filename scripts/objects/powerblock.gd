@@ -1,6 +1,7 @@
 class_name HurricanPowerBlock
 extends StaticBody2D
 
+const HurricanConfig = preload("res://scripts/hurrican_config.gd")
 const HurricanDiamond = preload("res://scripts/objects/diamond.gd")
 
 signal hit
@@ -14,7 +15,8 @@ const FRAME_DURATION: float = 0.1
 const FRAME_SIZE: int = 40
 
 func _init() -> void:
-	collision_layer = 1 # Solid world
+	# World & Destructible / Target layer so bullets and lightning hit it
+	collision_layer = HurricanConfig.COLLISION_LAYER_WORLD | HurricanConfig.COLLISION_LAYER_ENEMIES
 	collision_mask = 0
 	
 	var col = CollisionShape2D.new()

@@ -50,3 +50,11 @@ const WEAPON_FIRE_DELAY: Dictionary = {
 const BULLET_SPEED: float = 550.0
 const BULLET_LIFETIME: float = 1.8
 
+# 5. Kollisions-Ebenen (Bitmask-Werte)
+const COLLISION_LAYER_WORLD: int = 1       # Bit 0 (1)
+const COLLISION_LAYER_PLAYER: int = 2      # Bit 1 (2)
+const COLLISION_LAYER_ENEMIES: int = 4     # Bit 2 (4)
+const COLLISION_LAYER_PROJECTILES: int = 8 # Bit 3 (8)
+const COLLISION_LAYER_PICKUPS: int = 16    # Bit 4 (16)
+
+

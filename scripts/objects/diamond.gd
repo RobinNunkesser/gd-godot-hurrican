@@ -1,6 +1,7 @@
 class_name HurricanDiamond
 extends Area2D
 
+const HurricanConfig = preload("res://scripts/hurrican_config.gd")
 const HurricanPlayer = preload("res://scripts/player.gd")
 
 signal collected
@@ -14,8 +15,8 @@ const FRAME_WIDTH: int = 29
 const FRAME_HEIGHT: int = 29
 
 func _init() -> void:
-	collision_layer = 8 # Pickups
-	collision_mask = 4  # Player (collision layer 3 = bitmask 4)
+	collision_layer = HurricanConfig.COLLISION_LAYER_PICKUPS # Pickups (16)
+	collision_mask = HurricanConfig.COLLISION_LAYER_PLAYER   # Player (2)
 	
 	var col = CollisionShape2D.new()
 	var circle = CircleShape2D.new()

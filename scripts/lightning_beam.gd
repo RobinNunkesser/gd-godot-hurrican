@@ -26,7 +26,7 @@ func _ready() -> void:
 	raycast = RayCast2D.new()
 	raycast.name = "BeamRay"
 	raycast.enabled = true
-	raycast.collision_mask = 1 | 2 # World & Enemies
+	raycast.collision_mask = HurricanConfig.COLLISION_LAYER_WORLD | HurricanConfig.COLLISION_LAYER_ENEMIES # 1 | 4 (Only hits World & Enemies)
 	raycast.target_position = Vector2(HurricanConfig.LIGHTNING_MAX_DISTANCE, 0)
 	add_child(raycast)
 	

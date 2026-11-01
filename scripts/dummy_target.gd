@@ -9,8 +9,8 @@ var sprite: Sprite2D
 var sfx_explode: AudioStreamPlayer2D
 
 func _ready() -> void:
-	collision_layer = 2 # Enemies
-	collision_mask = 1  # World
+	collision_layer = HurricanConfig.COLLISION_LAYER_ENEMIES # Layer 3 (Mask 4)
+	collision_mask = HurricanConfig.COLLISION_LAYER_WORLD    # Layer 1 (Mask 1)
 	
 	var col = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()

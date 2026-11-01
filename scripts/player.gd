@@ -64,8 +64,8 @@ static func load_texture_safe(path: String) -> Texture2D:
 func _init() -> void:
 	name = "Player"
 	z_index = 2
-	collision_layer = 2 # Player layer
-	collision_mask = 1  # Collides with World
+	collision_layer = HurricanConfig.COLLISION_LAYER_PLAYER # Layer 2 (Mask 2)
+	collision_mask = HurricanConfig.COLLISION_LAYER_WORLD   # Layer 1 (Mask 1)
 	
 	_load_textures()
 	_setup_collision()
@@ -294,11 +294,13 @@ func fire_weapon() -> void:
 			var angles = [-0.18, 0.0, 0.18]
 			for offset in angles:
 				var bullet = HurricanBullet.new(current_weapon, Vector2.RIGHT.rotated(base_angle + offset))
+				bullet.shooter = self
 				bullet.global_position = spawn_pos
 				get_parent().add_child(bullet)
 		
 		HurricanConfig.WeaponType.LASER:
 			var bullet = HurricanBullet.new(current_weapon, aim_direction)
+			bullet.shooter = self
 			bullet.global_position = spawn_pos
 			get_parent().add_child(bullet)
 		
@@ -306,6 +308,7 @@ func fire_weapon() -> void:
 			# 2 leicht gestreute Bounce-Kugeln
 			for off in [-0.1, 0.1]:
 				var bullet = HurricanBullet.new(current_weapon, aim_direction.rotated(off))
+				bullet.shooter = self
 				bullet.global_position = spawn_pos
 				get_parent().add_child(bullet)
 
