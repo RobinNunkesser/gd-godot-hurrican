@@ -1,0 +1,72 @@
+; Engine configuration file.
+; Hurrican (Godot 4 2D Remake)
+; Phase 1: Player Kinematics, Gyro-Wheel & 360° Lightning Beam
+
+config_version=5
+
+[application]
+
+config/name="Hurrican Godot"
+config/version="0.1.0"
+config/description="Godot 4 2D Remake of the classic Turrican-inspired action platformer Hurrican."
+run/main_scene="res://scenes/main.tscn"
+config/icon="res://assets/icon.png"
+config/features=PackedStringArray("4.7", "Forward Plus")
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=480
+window/size/window_width_override=1280
+window/size/window_height_override=960
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method.web="gl_compatibility"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+pointing/emulate_mouse_from_touch=true
+
+[input]
+
+p1_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":65), Object(InputEventKey,"keycode":4194319)] ; A, Left
+}
+p1_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":68), Object(InputEventKey,"keycode":4194321)] ; D, Right
+}
+p1_up={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":87), Object(InputEventKey,"keycode":4194320)] ; W, Up
+}
+p1_down={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":83), Object(InputEventKey,"keycode":4194322)] ; S, Down
+}
+p1_jump={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":32), Object(InputEventKey,"keycode":88)] ; Space, X
+}
+p1_shoot={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":74), Object(InputEventKey,"keycode":67), Object(InputEventMouseButton,"button_index":1)] ; J, C, Left Mouse
+}
+p1_lightning={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":75), Object(InputEventKey,"keycode":86), Object(InputEventMouseButton,"button_index":2)] ; K, V, Right Mouse
+}
+p1_wheel={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":76), Object(InputEventKey,"keycode":4194325)] ; L, Shift
+}
+p1_weapon_cycle={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"keycode":69), Object(InputEventKey,"keycode":4194306)] ; E, Tab
+}
