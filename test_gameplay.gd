@@ -18,6 +18,7 @@ func _init() -> void:
 	success = success and _test_lightning_beam()
 	success = success and _test_player_states_and_wheel()
 	success = success and _test_player_weapons()
+	success = success and _test_gamepad_mappings()
 	success = success and _test_dummy_target()
 	success = success and _test_level_loader()
 	success = success and _test_main_scene()
@@ -30,7 +31,7 @@ func _init() -> void:
 		quit(1)
 
 func _test_config() -> bool:
-	print("[1/7] Testing HurricanConfig parameters...")
+	print("[1/9] Testing HurricanConfig parameters...")
 	assert(HurricanConfig.MOVE_SPEED > 0.0, "Move speed must be positive")
 	assert(HurricanConfig.JUMP_VELOCITY < 0.0, "Jump velocity must be negative (upwards)")
 	assert(HurricanConfig.GRAVITY > 0.0, "Gravity must be positive")
@@ -40,7 +41,7 @@ func _test_config() -> bool:
 	return true
 
 func _test_bullet() -> bool:
-	print("[2/7] Testing HurricanBullet weapon types & behaviors...")
+	print("[2/9] Testing HurricanBullet weapon types & behaviors...")
 	var spread_bullet = HurricanBullet.new(HurricanConfig.WeaponType.SPREAD, Vector2.RIGHT)
 	root.add_child(spread_bullet)
 	spread_bullet._ready()
@@ -59,7 +60,7 @@ func _test_bullet() -> bool:
 	return true
 
 func _test_lightning_beam() -> bool:
-	print("[3/7] Testing LightningBeam 360° raycast & procedural jitter...")
+	print("[3/9] Testing LightningBeam 360° raycast & procedural jitter...")
 	var beam = LightningBeam.new()
 	root.add_child(beam)
 	beam._ready()
@@ -83,7 +84,7 @@ func _test_lightning_beam() -> bool:
 	return true
 
 func _test_player_states_and_wheel() -> bool:
-	print("[4/7] Testing HurricanPlayer state machine & Gyro-Wheel transformation...")
+	print("[4/9] Testing HurricanPlayer state machine & Gyro-Wheel transformation...")
 	var player = HurricanPlayer.new()
 	root.add_child(player)
 	player._ready()
@@ -106,7 +107,7 @@ func _test_player_states_and_wheel() -> bool:
 	return true
 
 func _test_player_weapons() -> bool:
-	print("[5/7] Testing HurricanPlayer weapon cycling & firing...")
+	print("[5/9] Testing HurricanPlayer weapon cycling & firing...")
 	var player = HurricanPlayer.new()
 	root.add_child(player)
 	player._ready()
@@ -127,8 +128,33 @@ func _test_player_weapons() -> bool:
 	print("  -> HurricanPlayer Weapon Systems OK.")
 	return true
 
+func _test_gamepad_mappings() -> bool:
+	print("[6/9] Testing Gamepad InputMap actions & rumble support...")
+	var required_actions = ["p1_left", "p1_right", "p1_up", "p1_down", "p1_jump", "p1_shoot", "p1_lightning", "p1_wheel", "p1_weapon_cycle"]
+	for action in required_actions:
+		assert(InputMap.has_action(action), "InputMap missing action: " + action)
+		var events = InputMap.action_get_events(action)
+		var has_joy = false
+		for ev in events:
+			if ev is InputEventJoypadButton or ev is InputEventJoypadMotion:
+				has_joy = true
+				break
+		assert(has_joy, "Action " + action + " should have joypad event mapped")
+	
+	var player = HurricanPlayer.new()
+	root.add_child(player)
+	player._ready()
+	assert(player.has_method("trigger_rumble"), "Player must support rumble")
+	assert(player.has_method("take_damage"), "Player must support take_damage")
+	player.take_damage(20.0)
+	assert(player.health == 80.0, "Player HP should decrease on damage")
+	player.queue_free()
+	
+	print("  -> Gamepad Mappings & Rumble OK.")
+	return true
+
 func _test_dummy_target() -> bool:
-	print("[6/7] Testing DummyTarget damage reception & destruction...")
+	print("[7/9] Testing DummyTarget damage reception & destruction...")
 	var target = DummyTarget.new()
 	root.add_child(target)
 	target._ready()
@@ -146,7 +172,7 @@ func _test_dummy_target() -> bool:
 	return true
 
 func _test_level_loader() -> bool:
-	print("[7/8] Testing HurricanLevelLoader parsing & level generation...")
+	print("[8/9] Testing HurricanLevelLoader parsing & level generation...")
 	var tut_path = "res://assets/levels/tutorial.map"
 	var tut_data = HurricanLevelLoader.load_level_data(tut_path)
 	assert(tut_data != null, "Tutorial map should load successfully")
@@ -181,7 +207,7 @@ func _test_level_loader() -> bool:
 	return true
 
 func _test_main_scene() -> bool:
-	print("[8/8] Testing MainHurricanGame full orchestration & HUD...")
+	print("[9/9] Testing MainHurricanGame full orchestration & HUD...")
 	var game = MainHurricanGame.new()
 	root.add_child(game)
 	game._ready()

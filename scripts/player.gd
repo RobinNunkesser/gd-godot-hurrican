@@ -167,19 +167,26 @@ func _handle_input(delta: float) -> void:
 			wheel_energy_changed.emit(wheel_energy, HurricanConfig.WHEEL_ENERGY_MAX)
 
 	# 360° Rundum-Blitzstrahl (Lightning Beam)
-	var wants_lightning = Input.is_action_pressed("p1_lightning")
+	# Unterstützt Maus, Keyboard sowie Right Analog Stick (Twin-Stick) am Gamepad
+	var right_stick = Vector2(Input.get_joy_axis(0, JOY_AXIS_RIGHT_X), Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y))
+	var has_right_stick = right_stick.length_squared() > 0.15
+	var wants_lightning = Input.is_action_pressed("p1_lightning") or has_right_stick
+
 	if wants_lightning:
 		current_state = PlayerState.LIGHTNING
 		lightning_beam.set_beam_active(true)
 		
-		# Zielen via Maus oder Analogstick
-		var mouse_pos = get_global_mouse_position()
-		var aim_vec = (mouse_pos - global_position).normalized()
-		
-		# Tastatur-Fallback für Aim-Richtung
-		var move_input = Vector2(Input.get_axis("p1_left", "p1_right"), Input.get_axis("p1_up", "p1_down"))
-		if move_input.length_squared() > 0.1:
-			aim_vec = move_input.normalized()
+		var aim_vec = Vector2.RIGHT
+		if has_right_stick:
+			aim_vec = right_stick.normalized()
+		else:
+			# Zielen via Maus oder D-Pad / Tastatur
+			var mouse_pos = get_global_mouse_position()
+			aim_vec = (mouse_pos - global_position).normalized()
+			
+			var move_input = Vector2(Input.get_axis("p1_left", "p1_right"), Input.get_axis("p1_up", "p1_down"))
+			if move_input.length_squared() > 0.1:
+				aim_vec = move_input.normalized()
 		
 		aim_direction = aim_vec
 		lightning_beam.update_aim(aim_vec)
@@ -246,6 +253,7 @@ func _enter_wheel_mode() -> void:
 		return
 	current_state = PlayerState.WHEEL
 	lightning_beam.set_beam_active(false)
+	trigger_rumble(0.2, 0.4, 0.1)
 	
 	# Kleinere Kollisionsbox fürs Stachelrad
 	if collision_shape:
@@ -273,6 +281,7 @@ func cycle_weapon() -> void:
 
 func fire_weapon() -> void:
 	shot_cooldown = HurricanConfig.WEAPON_FIRE_DELAY[current_weapon]
+	trigger_rumble(0.08, 0.15, 0.05)
 	if sfx_shoot and sfx_shoot.stream and is_inside_tree():
 		sfx_shoot.play()
 	
@@ -299,6 +308,20 @@ func fire_weapon() -> void:
 				var bullet = HurricanBullet.new(current_weapon, aim_direction.rotated(off))
 				bullet.global_position = spawn_pos
 				get_parent().add_child(bullet)
+
+func trigger_rumble(weak: float, strong: float, duration: float) -> void:
+	if Input.get_connected_joypads().size() > 0:
+		Input.start_joy_vibration(0, weak, strong, duration)
+
+func take_damage(amount: float) -> void:
+	health = maxf(0.0, health - amount)
+	health_changed.emit(health, MAX_HEALTH)
+	trigger_rumble(0.5, 0.7, 0.2)
+	if sprite and is_inside_tree():
+		sprite.modulate = Color(3.0, 0.5, 0.5)
+		var tween = get_tree().create_tween() if get_tree() else null
+		if tween:
+			tween.tween_property(sprite, "modulate", Color.WHITE, 0.15)
 
 func _set_sprite_frame(frame_idx: int) -> void:
 	if sprite and sprite.hframes * sprite.vframes > frame_idx:
