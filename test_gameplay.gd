@@ -6,6 +6,8 @@ const LightningBeam = preload("res://scripts/lightning_beam.gd")
 const HurricanPlayer = preload("res://scripts/player.gd")
 const HurricanHUD = preload("res://scripts/hud.gd")
 const DummyTarget = preload("res://scripts/dummy_target.gd")
+const HurricanLevelLoader = preload("res://scripts/hurrican_level_loader.gd")
+const HurricanLevelData = preload("res://scripts/hurrican_level_data.gd")
 const MainHurricanGame = preload("res://scenes/main.gd")
 
 func _init() -> void:
@@ -17,6 +19,7 @@ func _init() -> void:
 	success = success and _test_player_states_and_wheel()
 	success = success and _test_player_weapons()
 	success = success and _test_dummy_target()
+	success = success and _test_level_loader()
 	success = success and _test_main_scene()
 	
 	if success:
@@ -142,8 +145,43 @@ func _test_dummy_target() -> bool:
 	print("  -> DummyTarget OK.")
 	return true
 
+func _test_level_loader() -> bool:
+	print("[7/8] Testing HurricanLevelLoader parsing & level generation...")
+	var tut_path = "res://assets/levels/tutorial.map"
+	var tut_data = HurricanLevelLoader.load_level_data(tut_path)
+	assert(tut_data != null, "Tutorial map should load successfully")
+	assert(tut_data.size_x == 400, "Tutorial size_x should be 400")
+	assert(tut_data.size_y == 300, "Tutorial size_y should be 300")
+	assert(tut_data.num_objects == 220, "Tutorial num_objects should be 220")
+	assert(tut_data.player_spawn_p1 == Vector2(299, 1740), "Tutorial P1 spawn mismatch: " + str(tut_data.player_spawn_p1))
+	assert(tut_data.used_tilesets == 33, "Tutorial used_tilesets should be 33")
+	
+	var jungle_path = "res://assets/levels/jungle.map"
+	var jungle_data = HurricanLevelLoader.load_level_data(jungle_path)
+	assert(jungle_data != null, "Jungle map should load successfully")
+	assert(jungle_data.size_x == 650, "Jungle size_x should be 650")
+	assert(jungle_data.size_y == 256, "Jungle size_y should be 256")
+	assert(jungle_data.num_objects == 1139, "Jungle num_objects should be 1139")
+	assert(jungle_data.player_spawn_p1 == Vector2(1753, 2220), "Jungle P1 spawn mismatch: " + str(jungle_data.player_spawn_p1))
+	assert(jungle_data.player_spawn_p2 == Vector2(1684, 2220), "Jungle P2 spawn mismatch: " + str(jungle_data.player_spawn_p2))
+	
+	# Node creation test
+	var level_node = HurricanLevelLoader.build_level_node(tut_data)
+	assert(level_node != null, "Level node should be constructed")
+	var col_tiles = level_node.get_node_or_null("CollisionTiles") as TileMapLayer
+	assert(col_tiles != null, "CollisionTiles layer should exist")
+	assert(col_tiles.get_used_cells().size() > 0, "CollisionTiles should have solid cells")
+	
+	var objects = level_node.get_node_or_null("LevelObjects")
+	assert(objects != null, "LevelObjects should exist")
+	assert(objects.get_child_count() > 0, "Objects should be instantiated in level")
+	
+	level_node.queue_free()
+	print("  -> HurricanLevelLoader OK.")
+	return true
+
 func _test_main_scene() -> bool:
-	print("[7/7] Testing MainHurricanGame full orchestration & HUD...")
+	print("[8/8] Testing MainHurricanGame full orchestration & HUD...")
 	var game = MainHurricanGame.new()
 	root.add_child(game)
 	game._ready()
