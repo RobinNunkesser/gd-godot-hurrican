@@ -22,6 +22,8 @@ var active_level_data: HurricanLevelData
 var stage_music_player: AudioStreamPlayer
 var boss_music_player: AudioStreamPlayer
 var spider_boss: HurricanSpiderBoss
+var world_env: WorldEnvironment
+var is_hd_mode: bool = false
 
 func _ready() -> void:
 	if level_path != "" and FileAccess.file_exists(level_path):
@@ -30,8 +32,39 @@ func _ready() -> void:
 		_build_fallback_stage()
 	
 	_setup_hud()
+	_setup_environment()
 	_setup_music()
 	_bind_boss_events()
+
+func _setup_environment() -> void:
+	world_env = WorldEnvironment.new()
+	world_env.name = "WorldEnvironment"
+	var env = Environment.new()
+	env.background_mode = Environment.BG_CANVAS
+	env.glow_enabled = true
+	env.glow_intensity = 0.0 # Standardmäßig Retro (kein Glow)
+	env.glow_bloom = 0.25
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_ADDITIVE
+	world_env.environment = env
+	add_child(world_env)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F2:
+			toggle_graphics_mode()
+	elif event is InputEventJoypadButton and event.pressed:
+		if event.button_index in [JOY_BUTTON_BACK, JOY_BUTTON_MISC1]:
+			toggle_graphics_mode()
+
+func toggle_graphics_mode() -> void:
+	is_hd_mode = not is_hd_mode
+	if active_level_node and active_level_data:
+		HurricanLevelLoader.set_hd_mode(active_level_node, active_level_data, is_hd_mode)
+	if hud:
+		hud.set_graphics_mode(is_hd_mode)
+		hud.show_mode_notification("★ MODUS: HD TEXTUREN + 2D LIGHTING (2026) ★" if is_hd_mode else "★ MODUS: RETRO PIXEL (2007) ★")
+	if world_env and world_env.environment:
+		world_env.environment.glow_intensity = 0.85 if is_hd_mode else 0.0
 
 func _setup_music() -> void:
 	stage_music_player = AudioStreamPlayer.new()

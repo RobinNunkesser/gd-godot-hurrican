@@ -6,6 +6,7 @@ const HurricanConfig = preload("res://scripts/hurrican_config.gd")
 var label_title: Label
 var label_weapon: Label
 var label_controls: Label
+var label_graphics_mode: Label
 var health_bar: ProgressBar
 var wheel_bar: ProgressBar
 
@@ -15,6 +16,11 @@ var boss_health_bar: ProgressBar
 var boss_name_label: Label
 var warning_label: Label
 var warning_timer: float = 0.0
+
+# Notification Toast
+var toast_panel: Panel
+var toast_label: Label
+var toast_timer: float = 0.0
 
 func _ready() -> void:
 	layer = 10
@@ -70,19 +76,29 @@ func _ready() -> void:
 	
 	# Weapon Indicator
 	label_weapon = Label.new()
-	label_weapon.position = Vector2(430, 20)
-	label_weapon.size = Vector2(170, 28)
+	label_weapon.position = Vector2(430, 10)
+	label_weapon.size = Vector2(170, 24)
 	label_weapon.text = "WEAPON: SPREAD SHOT"
 	label_weapon.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	label_weapon.add_theme_font_size_override("font_size", 13)
 	label_weapon.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0))
 	panel.add_child(label_weapon)
 	
+	# Graphics Mode Indicator
+	label_graphics_mode = Label.new()
+	label_graphics_mode.position = Vector2(430, 36)
+	label_graphics_mode.size = Vector2(170, 22)
+	label_graphics_mode.text = "[F2] GRAFIK: RETRO (2007)"
+	label_graphics_mode.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	label_graphics_mode.add_theme_font_size_override("font_size", 11)
+	label_graphics_mode.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3))
+	panel.add_child(label_graphics_mode)
+	
 	# Bottom Controls Helper
 	label_controls = Label.new()
 	label_controls.position = Vector2(16, 448)
 	label_controls.size = Vector2(608, 24)
-	label_controls.text = "[A/D] Laufen  [Space] Sprung  [S+Space / L] Gyro-Wheel  [J] Schuss  [K / R-Maus] 360° Blitz  [E] Waffe"
+	label_controls.text = "[A/D] Laufen  [Space] Sprung  [S+Space / L] Gyro-Wheel  [J] Schuss  [K / R-Maus] 360° Blitz  [E] Waffe  [F2] HD/Retro"
 	label_controls.add_theme_font_size_override("font_size", 11)
 	label_controls.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9, 0.8))
 	container.add_child(label_controls)
@@ -97,6 +113,21 @@ func _ready() -> void:
 	warning_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
 	warning_label.visible = false
 	container.add_child(warning_label)
+	
+	# Toast Notification Panel
+	toast_panel = Panel.new()
+	toast_panel.position = Vector2(170, 240)
+	toast_panel.size = Vector2(300, 44)
+	toast_panel.visible = false
+	container.add_child(toast_panel)
+	
+	toast_label = Label.new()
+	toast_label.position = Vector2(0, 10)
+	toast_label.size = Vector2(300, 24)
+	toast_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	toast_label.add_theme_font_size_override("font_size", 13)
+	toast_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
+	toast_panel.add_child(toast_label)
 	
 	# Boss Health Bar Panel at bottom
 	boss_panel = Panel.new()
@@ -128,6 +159,26 @@ func _process(delta: float) -> void:
 		warning_label.visible = (int(warning_timer * 6.0) % 2 == 0)
 		if warning_timer <= 0.0:
 			warning_label.visible = false
+			
+	if toast_timer > 0.0:
+		toast_timer -= delta
+		if toast_timer <= 0.0 and toast_panel:
+			toast_panel.visible = false
+
+func show_mode_notification(text: String) -> void:
+	if toast_label and toast_panel:
+		toast_label.text = text
+		toast_panel.visible = true
+		toast_timer = 2.0
+
+func set_graphics_mode(is_hd: bool) -> void:
+	if label_graphics_mode:
+		if is_hd:
+			label_graphics_mode.text = "[F2] GRAFIK: HD MODE (2026)"
+			label_graphics_mode.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5))
+		else:
+			label_graphics_mode.text = "[F2] GRAFIK: RETRO (2007)"
+			label_graphics_mode.add_theme_color_override("font_color", Color(0.9, 0.7, 0.3))
 
 func trigger_warning() -> void:
 	warning_timer = 2.8

@@ -67,7 +67,7 @@ func activate_boss() -> void:
 	if is_active or is_defeated:
 		return
 	is_active = true
-	if scream_audio and scream_audio.stream:
+	if is_inside_tree() and scream_audio and scream_audio.stream:
 		scream_audio.play()
 	activated.emit()
 	health_changed.emit(health, MAX_HP)
@@ -156,7 +156,7 @@ func _start_defeat() -> void:
 	defeated.emit()
 	
 	# Todes-Schrei
-	if scream_audio and scream_audio.stream:
+	if is_inside_tree() and scream_audio and scream_audio.stream:
 		scream_audio.pitch_scale = 0.7
 		scream_audio.play()
 

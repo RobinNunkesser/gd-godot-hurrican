@@ -92,8 +92,23 @@ static func load_level_data(path: String) -> HurricanLevelData:
 	file.close()
 	return data
 
-static func find_tileset_texture(filename: String) -> Texture2D:
+static func find_tileset_texture(filename: String, use_hd: bool = false) -> Texture2D:
 	var clean = filename.strip_edges()
+	var base_stem = clean.get_basename()
+	var ext = clean.get_extension()
+	if ext == "":
+		ext = "png"
+	
+	if use_hd:
+		var hd_name = base_stem + "_hd." + ext
+		var hd_paths = [
+			"res://assets/textures/tilesets/" + hd_name,
+			"res://assets/textures/tilesets/" + hd_name.to_lower()
+		]
+		for p in hd_paths:
+			if ResourceLoader.exists(p):
+				return load(p)
+	
 	var base_paths = [
 		"res://assets/textures/tilesets/" + clean,
 		"res://assets/textures/tilesets/" + clean.to_lower()
@@ -108,6 +123,10 @@ static func find_tileset_texture(filename: String) -> Texture2D:
 		dir.list_dir_begin()
 		var file_name = dir.get_next()
 		while file_name != "":
+			if use_hd and file_name.to_lower() == (base_stem + "_hd." + ext).to_lower():
+				var full_p = "res://assets/textures/tilesets/" + file_name
+				if ResourceLoader.exists(full_p):
+					return load(full_p)
 			if file_name.to_lower() == clean.to_lower():
 				var full_p = "res://assets/textures/tilesets/" + file_name
 				if ResourceLoader.exists(full_p):
@@ -172,15 +191,17 @@ static func create_collision_tileset() -> TileSet:
 	
 	return ts
 
-static func build_level_node(data: HurricanLevelData) -> Node2D:
+static func build_level_node(data: HurricanLevelData, use_hd: bool = false) -> Node2D:
 	var level_root = Node2D.new()
 	level_root.name = "HurricanLevel"
+	level_root.set_meta("use_hd", use_hd)
 	
 	# 1. Backgrounds & Parallax
 	var bg_layer = CanvasLayer.new()
 	bg_layer.name = "BackgroundCanvas"
 	bg_layer.layer = -10
 	var bg_rect = TextureRect.new()
+	bg_rect.name = "BackgroundRect"
 	bg_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -191,6 +212,11 @@ static func build_level_node(data: HurricanLevelData) -> Node2D:
 	if bg_candidate == "" or not ResourceLoader.exists("res://assets/textures/environment/" + bg_candidate):
 		bg_candidate = "back_jungle.png"
 	
+	if use_hd:
+		var hd_bg = bg_candidate.get_basename() + "_hd.png"
+		if ResourceLoader.exists("res://assets/textures/environment/" + hd_bg):
+			bg_candidate = hd_bg
+	
 	var bg_tex_path = "res://assets/textures/environment/" + bg_candidate
 	if ResourceLoader.exists(bg_tex_path):
 		bg_rect.texture = load(bg_tex_path)
@@ -198,16 +224,17 @@ static func build_level_node(data: HurricanLevelData) -> Node2D:
 	level_root.add_child(bg_layer)
 	
 	# 2. Visual TileSet
+	var tile_dim: int = 40 if use_hd else HurricanLevelData.TILE_SIZE
 	var visual_tileset = TileSet.new()
-	visual_tileset.tile_size = Vector2i(HurricanLevelData.TILE_SIZE, HurricanLevelData.TILE_SIZE)
+	visual_tileset.tile_size = Vector2i(tile_dim, tile_dim)
 	
 	for i in range(data.used_tilesets):
 		var set_name = data.tileset_names[i]
-		var tex = find_tileset_texture(set_name)
+		var tex = find_tileset_texture(set_name, use_hd)
 		if tex:
 			var atlas_src = TileSetAtlasSource.new()
 			atlas_src.texture = tex
-			atlas_src.texture_region_size = Vector2i(HurricanLevelData.TILE_SIZE, HurricanLevelData.TILE_SIZE)
+			atlas_src.texture_region_size = Vector2i(tile_dim, tile_dim)
 			visual_tileset.add_source(atlas_src, i)
 			for cy in range(12):
 				for cx in range(12):
@@ -218,12 +245,16 @@ static func build_level_node(data: HurricanLevelData) -> Node2D:
 	map_bg.name = "BackgroundTiles"
 	map_bg.tile_set = visual_tileset
 	map_bg.z_index = -1
+	if use_hd:
+		map_bg.scale = Vector2(0.5, 0.5)
 	level_root.add_child(map_bg)
 	
 	var map_fg = TileMapLayer.new()
 	map_fg.name = "ForegroundTiles"
 	map_fg.tile_set = visual_tileset
 	map_fg.z_index = 1
+	if use_hd:
+		map_fg.scale = Vector2(0.5, 0.5)
 	level_root.add_child(map_fg)
 	
 	var col_tileset = create_collision_tileset()
@@ -307,3 +338,51 @@ static func build_level_node(data: HurricanLevelData) -> Node2D:
 				obj_container.add_child(trigger)
 	
 	return level_root
+
+static func set_hd_mode(level_root: Node2D, data: HurricanLevelData, use_hd: bool) -> void:
+	if not level_root or not data:
+		return
+	
+	var map_bg = level_root.get_node_or_null("BackgroundTiles") as TileMapLayer
+	var map_fg = level_root.get_node_or_null("ForegroundTiles") as TileMapLayer
+	var bg_layer = level_root.get_node_or_null("BackgroundCanvas")
+	var bg_rect = bg_layer.get_node_or_null("BackgroundRect") as TextureRect if bg_layer else null
+	
+	var tile_dim: int = 40 if use_hd else HurricanLevelData.TILE_SIZE
+	var visual_tileset = TileSet.new()
+	visual_tileset.tile_size = Vector2i(tile_dim, tile_dim)
+	
+	for i in range(data.used_tilesets):
+		var set_name = data.tileset_names[i]
+		var tex = find_tileset_texture(set_name, use_hd)
+		if tex:
+			var atlas_src = TileSetAtlasSource.new()
+			atlas_src.texture = tex
+			atlas_src.texture_region_size = Vector2i(tile_dim, tile_dim)
+			visual_tileset.add_source(atlas_src, i)
+			for cy in range(12):
+				for cx in range(12):
+					atlas_src.create_tile(Vector2i(cx, cy))
+	
+	if map_bg:
+		map_bg.tile_set = visual_tileset
+		map_bg.scale = Vector2(0.5, 0.5) if use_hd else Vector2(1.0, 1.0)
+	if map_fg:
+		map_fg.tile_set = visual_tileset
+		map_fg.scale = Vector2(0.5, 0.5) if use_hd else Vector2(1.0, 1.0)
+	
+	if bg_rect:
+		var bg_candidate = data.bg_file
+		if bg_candidate == "" or not ResourceLoader.exists("res://assets/textures/environment/" + bg_candidate):
+			bg_candidate = data.parallax_a_file
+		if bg_candidate == "" or not ResourceLoader.exists("res://assets/textures/environment/" + bg_candidate):
+			bg_candidate = "back_jungle.png"
+		if use_hd:
+			var hd_bg = bg_candidate.get_basename() + "_hd.png"
+			if ResourceLoader.exists("res://assets/textures/environment/" + hd_bg):
+				bg_candidate = hd_bg
+		var bg_tex_path = "res://assets/textures/environment/" + bg_candidate
+		if ResourceLoader.exists(bg_tex_path):
+			bg_rect.texture = load(bg_tex_path)
+	
+	level_root.set_meta("use_hd", use_hd)

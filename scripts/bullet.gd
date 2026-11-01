@@ -52,8 +52,31 @@ func _ready() -> void:
 	sprite.rotation = direction.angle()
 	add_child(sprite)
 	
+	_setup_dynamic_light()
+	
 	if not body_entered.is_connected(_on_body_entered):
 		body_entered.connect(_on_body_entered)
+
+func _setup_dynamic_light() -> void:
+	var light = PointLight2D.new()
+	light.name = "BulletLight"
+	var light_tex = "res://assets/textures/effects/light_glow.png"
+	if ResourceLoader.exists(light_tex):
+		light.texture = load(light_tex)
+		light.texture_scale = 0.8
+		light.energy = 1.2
+		match weapon_type:
+			HurricanConfig.WeaponType.SPREAD:
+				light.color = Color(1.0, 0.6, 0.25) # Warm amber
+				light.texture_scale = 0.7
+			HurricanConfig.WeaponType.LASER:
+				light.color = Color(0.2, 0.8, 1.0) # Neon cyan
+				light.texture_scale = 1.2
+				light.energy = 1.5
+			HurricanConfig.WeaponType.BOUNCE:
+				light.color = Color(0.3, 1.0, 0.4) # Electric lime
+				light.texture_scale = 0.9
+		add_child(light)
 
 func _physics_process(delta: float) -> void:
 	position += direction * speed * delta

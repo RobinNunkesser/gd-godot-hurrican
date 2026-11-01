@@ -23,6 +23,7 @@ func _init() -> void:
 	success = success and _test_level_loader()
 	success = success and _test_main_scene()
 	success = success and _test_boss_and_music()
+	success = success and _test_hd_mode_and_lighting()
 	
 	if success:
 		print("=== ALL TESTS FOR HURRICAN GODOT PASSED SUCCESSFULLY! ===")
@@ -257,4 +258,42 @@ func _test_boss_and_music() -> bool:
 	trigger.queue_free()
 	boss.queue_free()
 	print("  -> Boss Encounter & Music OK.")
+	return true
+
+func _test_hd_mode_and_lighting() -> bool:
+	print("[11/11] Testing HD Mode (40px tiles, 0.5 scale) & 2D Dynamic Lights...")
+	assert(ResourceLoader.exists("res://assets/textures/effects/light_glow.png"), "Radial light texture must exist")
+	assert(ResourceLoader.exists("res://assets/textures/tilesets/s_jungle_hd.png"), "HD jungle tileset must exist")
+	assert(ResourceLoader.exists("res://assets/textures/environment/back_jungle_hd.png"), "HD jungle background must exist")
+	
+	# Test Bullet Light
+	var bullet = HurricanBullet.new(HurricanConfig.WeaponType.LASER, Vector2.RIGHT)
+	root.add_child(bullet)
+	bullet._ready()
+	var light = bullet.get_node_or_null("BulletLight")
+	assert(light is PointLight2D, "Bullet should have PointLight2D attached")
+	assert(light.color == Color(0.2, 0.8, 1.0), "Laser bullet light should be cyan")
+	bullet.queue_free()
+	
+	# Test Level HD Mode Toggle
+	var level_data = HurricanLevelLoader.load_level_data("res://assets/levels/jungle.map")
+	var level_node = HurricanLevelLoader.build_level_node(level_data, false)
+	root.add_child(level_node)
+	
+	var map_bg = level_node.get_node("BackgroundTiles") as TileMapLayer
+	assert(map_bg.scale == Vector2(1.0, 1.0), "Retro mode should have 1.0 scale")
+	assert(map_bg.tile_set.tile_size == Vector2i(20, 20), "Retro mode should have 20x20 tile size")
+	
+	# Toggle to HD
+	HurricanLevelLoader.set_hd_mode(level_node, level_data, true)
+	assert(map_bg.scale == Vector2(0.5, 0.5), "HD mode should scale TileMapLayer by 0.5")
+	assert(map_bg.tile_set.tile_size == Vector2i(40, 40), "HD mode should have 40x40 tile size")
+	
+	# Toggle back to Retro
+	HurricanLevelLoader.set_hd_mode(level_node, level_data, false)
+	assert(map_bg.scale == Vector2(1.0, 1.0), "Retro mode should revert to 1.0 scale")
+	assert(map_bg.tile_set.tile_size == Vector2i(20, 20), "Retro mode should revert to 20x20 tile size")
+	
+	level_node.queue_free()
+	print("  -> HD Mode & 2D Lighting OK.")
 	return true
