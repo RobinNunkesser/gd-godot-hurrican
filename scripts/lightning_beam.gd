@@ -65,7 +65,7 @@ func set_beam_active(active: bool) -> void:
 	line_outer.visible = active
 	line_core.visible = active
 	if active:
-		if audio_player and audio_player.stream and not audio_player.playing:
+		if audio_player and audio_player.stream and is_inside_tree() and not audio_player.playing:
 			audio_player.play()
 	else:
 		if audio_player and audio_player.playing:

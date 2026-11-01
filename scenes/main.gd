@@ -22,8 +22,7 @@ func _build_background() -> void:
 	canvas_bg.layer = -5
 	var bg_sprite = TextureRect.new()
 	var bg_path = "res://assets/textures/environment/back_jungle.png"
-	if ResourceLoader.exists(bg_path):
-		bg_sprite.texture = load(bg_path)
+	bg_sprite.texture = HurricanPlayer.load_texture_safe(bg_path)
 	bg_sprite.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg_sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	bg_sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -93,6 +92,7 @@ func _spawn_player() -> void:
 	add_child(player)
 	
 	camera = Camera2D.new()
+	camera.enabled = true
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 8.0
 	camera.limit_left = 0
@@ -100,6 +100,7 @@ func _spawn_player() -> void:
 	camera.limit_top = -200
 	camera.limit_bottom = 480
 	player.add_child(camera)
+	camera.reset_smoothing()
 
 func _spawn_targets() -> void:
 	var target_positions = [
@@ -121,3 +122,4 @@ func _setup_hud() -> void:
 	player.health_changed.connect(hud.set_health)
 	player.wheel_energy_changed.connect(hud.set_wheel_energy)
 	player.weapon_changed.connect(hud.set_weapon)
+

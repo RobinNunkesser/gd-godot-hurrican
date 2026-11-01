@@ -27,3 +27,4 @@ jobs:
 
       - name: Run Headless Tests
         run: godot --headless -s test_gameplay.gd
+

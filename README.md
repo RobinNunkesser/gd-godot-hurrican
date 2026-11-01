@@ -50,3 +50,4 @@ Das Projekt verfügt über einen vollständig headless lauffähigen Test-Runner 
 godot --headless -s test_gameplay.gd
 ```
 Exits mit `0` bei Erfolg.
+

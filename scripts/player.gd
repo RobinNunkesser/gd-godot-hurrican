@@ -52,8 +52,18 @@ var tex_rundum: Texture2D
 var tex_shoot_diag: Texture2D
 var tex_shoot_up: Texture2D
 
-func _ready() -> void:
+static func load_texture_safe(path: String) -> Texture2D:
+	if ResourceLoader.exists(path):
+		return load(path)
+	if FileAccess.file_exists(path):
+		var img = Image.load_from_file(ProjectSettings.globalize_path(path))
+		if img:
+			return ImageTexture.create_from_image(img)
+	return null
+
+func _init() -> void:
 	name = "Player"
+	z_index = 2
 	collision_layer = 2 # Player layer
 	collision_mask = 1  # Collides with World
 	
@@ -62,29 +72,22 @@ func _ready() -> void:
 	_setup_sprite()
 	_setup_lightning()
 	_setup_audio()
-	
+
+func _ready() -> void:
 	health_changed.emit(health, MAX_HEALTH)
 	wheel_energy_changed.emit(wheel_energy, HurricanConfig.WHEEL_ENERGY_MAX)
 	weapon_changed.emit(current_weapon)
 
 func _load_textures() -> void:
 	var base = "res://assets/textures/player/"
-	if ResourceLoader.exists(base + "p1_hurri_idle.png"):
-		tex_idle = load(base + "p1_hurri_idle.png")
-	if ResourceLoader.exists(base + "p1_hurri_laufen.png"):
-		tex_run = load(base + "p1_hurri_laufen.png")
-	if ResourceLoader.exists(base + "p1_hurri_jump.png"):
-		tex_jump = load(base + "p1_hurri_jump.png")
-	if ResourceLoader.exists(base + "p1_hurri_crouch.png"):
-		tex_crouch = load(base + "p1_hurri_crouch.png")
-	if ResourceLoader.exists(base + "p1_hurri_rad.png"):
-		tex_rad = load(base + "p1_hurri_rad.png")
-	if ResourceLoader.exists(base + "p1_hurri_rundumschuss.png"):
-		tex_rundum = load(base + "p1_hurri_rundumschuss.png")
-	if ResourceLoader.exists(base + "p1_hurri_shootdiagonal.png"):
-		tex_shoot_diag = load(base + "p1_hurri_shootdiagonal.png")
-	if ResourceLoader.exists(base + "p1_hurri_shootup.png"):
-		tex_shoot_up = load(base + "p1_hurri_shootup.png")
+	tex_idle = load_texture_safe(base + "p1_hurri_idle.png")
+	tex_run = load_texture_safe(base + "p1_hurri_laufen.png")
+	tex_jump = load_texture_safe(base + "p1_hurri_jump.png")
+	tex_crouch = load_texture_safe(base + "p1_hurri_crouch.png")
+	tex_rad = load_texture_safe(base + "p1_hurri_rad.png")
+	tex_rundum = load_texture_safe(base + "p1_hurri_rundumschuss.png")
+	tex_shoot_diag = load_texture_safe(base + "p1_hurri_shootdiagonal.png")
+	tex_shoot_up = load_texture_safe(base + "p1_hurri_shootup.png")
 
 func _setup_collision() -> void:
 	collision_shape = CollisionShape2D.new()
@@ -220,7 +223,7 @@ func _handle_input(delta: float) -> void:
 	if Input.is_action_just_pressed("p1_jump") and is_on_floor() and not is_crouching:
 		velocity.y = HurricanConfig.JUMP_VELOCITY
 		current_state = PlayerState.JUMP
-		if sfx_jump and sfx_jump.stream:
+		if sfx_jump and sfx_jump.stream and is_inside_tree():
 			sfx_jump.play()
 	
 	# Variables Sprunghöhe-Gefühl (Taste früher loslassen kappt Sprunghöhe)
@@ -270,7 +273,7 @@ func cycle_weapon() -> void:
 
 func fire_weapon() -> void:
 	shot_cooldown = HurricanConfig.WEAPON_FIRE_DELAY[current_weapon]
-	if sfx_shoot and sfx_shoot.stream:
+	if sfx_shoot and sfx_shoot.stream and is_inside_tree():
 		sfx_shoot.play()
 	
 	var spawn_pos = global_position + aim_direction * 18.0 + Vector2(0, -6)

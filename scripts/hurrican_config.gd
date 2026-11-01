@@ -49,3 +49,4 @@ const WEAPON_FIRE_DELAY: Dictionary = {
 
 const BULLET_SPEED: float = 550.0
 const BULLET_LIFETIME: float = 1.8
+

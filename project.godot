@@ -70,3 +70,4 @@ p1_weapon_cycle={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"keycode":69), Object(InputEventKey,"keycode":4194306)] ; E, Tab
 }
+
