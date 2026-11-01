@@ -10,8 +10,8 @@ const FRICTION: float = 1400.0
 const AIR_ACCEL: float = 800.0
 
 const GRAVITY: float = 980.0
-const JUMP_VELOCITY: float = -380.0
-const VARIABLE_JUMP_CUTOFF: float = -120.0
+const JUMP_VELOCITY: float = -490.0 # Ergibt ~123px Sprunghöhe, exakt wie PLAYER_MAXJUMP in Hurrican
+const VARIABLE_JUMP_CUTOFF: float = -140.0
 
 # 2. Gyro-Wheel (Stachelrad / Morph-Ball)
 const WHEEL_SPEED: float = 280.0

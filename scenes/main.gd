@@ -43,11 +43,11 @@ func _build_geometry() -> void:
 	_add_box_obstacle(world_body, Vector2(0, 100), Vector2(40, 700), Color(0.3, 0.35, 0.4))
 	_add_box_obstacle(world_body, Vector2(2400, 100), Vector2(40, 700), Color(0.3, 0.35, 0.4))
 	
-	# 3. Gestaffelte Sprungplattformen
-	_add_box_obstacle(world_body, Vector2(350, 310), Vector2(180, 24), Color(0.4, 0.45, 0.3))
-	_add_box_obstacle(world_body, Vector2(580, 240), Vector2(160, 24), Color(0.4, 0.45, 0.3))
-	_add_box_obstacle(world_body, Vector2(800, 170), Vector2(200, 24), Color(0.4, 0.45, 0.3))
-	_add_box_obstacle(world_body, Vector2(1100, 260), Vector2(220, 24), Color(0.4, 0.45, 0.3))
+	# 3. Gestaffelte Sprungplattformen (One-Way-Platforms zum Durchspringen von unten)
+	_add_box_obstacle(world_body, Vector2(350, 310), Vector2(180, 24), Color(0.4, 0.45, 0.3), true)
+	_add_box_obstacle(world_body, Vector2(580, 240), Vector2(160, 24), Color(0.4, 0.45, 0.3), true)
+	_add_box_obstacle(world_body, Vector2(800, 170), Vector2(200, 24), Color(0.4, 0.45, 0.3), true)
+	_add_box_obstacle(world_body, Vector2(1100, 260), Vector2(220, 24), Color(0.4, 0.45, 0.3), true)
 	
 	# 4. 45° Rampe für Slopes & Gyro-Wheel
 	var ramp_col = CollisionPolygon2D.new()
@@ -66,12 +66,14 @@ func _build_geometry() -> void:
 	
 	add_child(world_body)
 
-func _add_box_obstacle(parent: StaticBody2D, pos: Vector2, size: Vector2, color: Color) -> void:
+func _add_box_obstacle(parent: StaticBody2D, pos: Vector2, size: Vector2, color: Color, is_one_way: bool = false) -> void:
 	var col = CollisionShape2D.new()
 	var rect = RectangleShape2D.new()
 	rect.size = size
 	col.shape = rect
 	col.position = pos
+	col.one_way_collision = is_one_way
+	col.one_way_collision_margin = 6.0
 	parent.add_child(col)
 	
 	var poly = Polygon2D.new()
