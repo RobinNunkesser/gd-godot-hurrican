@@ -9,6 +9,13 @@ var label_controls: Label
 var health_bar: ProgressBar
 var wheel_bar: ProgressBar
 
+# Boss HUD
+var boss_panel: Panel
+var boss_health_bar: ProgressBar
+var boss_name_label: Label
+var warning_label: Label
+var warning_timer: float = 0.0
+
 func _ready() -> void:
 	layer = 10
 	
@@ -79,6 +86,61 @@ func _ready() -> void:
 	label_controls.add_theme_font_size_override("font_size", 11)
 	label_controls.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9, 0.8))
 	container.add_child(label_controls)
+	
+	# Flashing Warning Label
+	warning_label = Label.new()
+	warning_label.position = Vector2(0, 180)
+	warning_label.size = Vector2(640, 50)
+	warning_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	warning_label.text = "⚠ WARNING! BOSS APPROACHING ⚠"
+	warning_label.add_theme_font_size_override("font_size", 24)
+	warning_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+	warning_label.visible = false
+	container.add_child(warning_label)
+	
+	# Boss Health Bar Panel at bottom
+	boss_panel = Panel.new()
+	boss_panel.position = Vector2(120, 400)
+	boss_panel.size = Vector2(400, 40)
+	boss_panel.visible = false
+	container.add_child(boss_panel)
+	
+	boss_name_label = Label.new()
+	boss_name_label.position = Vector2(10, 8)
+	boss_name_label.size = Vector2(120, 24)
+	boss_name_label.text = "GIANT SPIDER:"
+	boss_name_label.add_theme_font_size_override("font_size", 12)
+	boss_name_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+	boss_panel.add_child(boss_name_label)
+	
+	boss_health_bar = ProgressBar.new()
+	boss_health_bar.position = Vector2(130, 12)
+	boss_health_bar.size = Vector2(250, 16)
+	boss_health_bar.max_value = 650.0
+	boss_health_bar.value = 650.0
+	boss_health_bar.show_percentage = false
+	boss_panel.add_child(boss_health_bar)
+
+func _process(delta: float) -> void:
+	if warning_timer > 0.0:
+		warning_timer -= delta
+		# Retro-Blinken
+		warning_label.visible = (int(warning_timer * 6.0) % 2 == 0)
+		if warning_timer <= 0.0:
+			warning_label.visible = false
+
+func trigger_warning() -> void:
+	warning_timer = 2.8
+	warning_label.visible = true
+
+func show_boss_health(show: bool) -> void:
+	if boss_panel:
+		boss_panel.visible = show
+
+func update_boss_health(hp: float, max_hp: float) -> void:
+	if boss_health_bar:
+		boss_health_bar.max_value = max_hp
+		boss_health_bar.value = hp
 
 func set_health(hp: float, max_hp: float) -> void:
 	if health_bar:

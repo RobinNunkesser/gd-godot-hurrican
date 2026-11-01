@@ -6,6 +6,8 @@ const HurricanDiamond = preload("res://scripts/objects/diamond.gd")
 const HurricanPowerBlock = preload("res://scripts/objects/powerblock.gd")
 const HurricanWalkerEnemy = preload("res://scripts/objects/walker_enemy.gd")
 const HurricanDroneEnemy = preload("res://scripts/objects/drone_enemy.gd")
+const HurricanBossTrigger = preload("res://scripts/objects/boss_trigger.gd")
+const HurricanSpiderBoss = preload("res://scripts/objects/spider_boss.gd")
 
 static func clean_string(bytes: PackedByteArray) -> String:
 	var null_idx = bytes.find(0)
@@ -295,5 +297,13 @@ static func build_level_node(data: HurricanLevelData) -> Node2D:
 				var drone = HurricanDroneEnemy.new()
 				drone.position = pos
 				obj_container.add_child(drone)
+			122: # RIESENSPINNE (Giant Spider Boss)
+				var boss = HurricanSpiderBoss.new()
+				boss.position = pos
+				obj_container.add_child(boss)
+			164: # WARNING TRIGGER
+				var trigger = HurricanBossTrigger.new()
+				trigger.position = pos
+				obj_container.add_child(trigger)
 	
 	return level_root

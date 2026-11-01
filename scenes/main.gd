@@ -8,6 +8,9 @@ const DummyTarget = preload("res://scripts/dummy_target.gd")
 const HurricanLevelLoader = preload("res://scripts/hurrican_level_loader.gd")
 const HurricanLevelData = preload("res://scripts/hurrican_level_data.gd")
 
+const HurricanBossTrigger = preload("res://scripts/objects/boss_trigger.gd")
+const HurricanSpiderBoss = preload("res://scripts/objects/spider_boss.gd")
+
 @export var level_path: String = "res://assets/levels/jungle.map"
 
 var player: HurricanPlayer
@@ -16,6 +19,10 @@ var camera: Camera2D
 var active_level_node: Node2D
 var active_level_data: HurricanLevelData
 
+var stage_music_player: AudioStreamPlayer
+var boss_music_player: AudioStreamPlayer
+var spider_boss: HurricanSpiderBoss
+
 func _ready() -> void:
 	if level_path != "" and FileAccess.file_exists(level_path):
 		_load_hurrican_level(level_path)
@@ -23,6 +30,70 @@ func _ready() -> void:
 		_build_fallback_stage()
 	
 	_setup_hud()
+	_setup_music()
+	_bind_boss_events()
+
+func _setup_music() -> void:
+	stage_music_player = AudioStreamPlayer.new()
+	stage_music_player.name = "StageMusic"
+	var stage_song = "res://assets/music/jungle.mp3"
+	if ResourceLoader.exists(stage_song):
+		stage_music_player.stream = load(stage_song)
+	add_child(stage_music_player)
+	
+	boss_music_player = AudioStreamPlayer.new()
+	boss_music_player.name = "BossMusic"
+	var boss_song = "res://assets/music/boss.mp3"
+	if ResourceLoader.exists(boss_song):
+		boss_music_player.stream = load(boss_song)
+	add_child(boss_music_player)
+	
+	if stage_music_player.stream and is_inside_tree():
+		stage_music_player.play()
+
+func _bind_boss_events() -> void:
+	if not active_level_node:
+		return
+	var objects = active_level_node.get_node_or_null("LevelObjects")
+	if not objects:
+		return
+		
+	for child in objects.get_children():
+		if child is HurricanBossTrigger:
+			child.boss_triggered.connect(_on_boss_triggered)
+		elif child is HurricanSpiderBoss:
+			spider_boss = child
+			spider_boss.health_changed.connect(_on_boss_health_changed)
+			spider_boss.defeated.connect(_on_boss_defeated)
+
+func _on_boss_triggered(_trigger_node: HurricanBossTrigger) -> void:
+	if hud:
+		hud.trigger_warning()
+		hud.show_boss_health(true)
+		
+	# Musik-Übergang von Stage zu Boss
+	if stage_music_player and stage_music_player.playing:
+		stage_music_player.stop()
+	if boss_music_player and boss_music_player.stream and not boss_music_player.playing:
+		boss_music_player.play()
+		
+	# Kamera auf die Arena beschränken
+	if camera:
+		camera.limit_left = 11400
+		
+	# Boss aktivieren
+	if spider_boss:
+		spider_boss.activate_boss()
+
+func _on_boss_health_changed(hp: float, max_hp: float) -> void:
+	if hud:
+		hud.update_boss_health(hp, max_hp)
+
+func _on_boss_defeated() -> void:
+	if hud:
+		hud.show_boss_health(false)
+	if boss_music_player and boss_music_player.playing:
+		boss_music_player.stop()
 
 func _load_hurrican_level(path: String) -> void:
 	active_level_data = HurricanLevelLoader.load_level_data(path)

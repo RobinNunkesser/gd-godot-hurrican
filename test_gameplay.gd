@@ -22,6 +22,7 @@ func _init() -> void:
 	success = success and _test_dummy_target()
 	success = success and _test_level_loader()
 	success = success and _test_main_scene()
+	success = success and _test_boss_and_music()
 	
 	if success:
 		print("=== ALL TESTS FOR HURRICAN GODOT PASSED SUCCESSFULLY! ===")
@@ -230,4 +231,30 @@ func _test_main_scene() -> bool:
 	
 	game.queue_free()
 	print("  -> MainHurricanGame Full Orchestration OK.")
+	return true
+
+func _test_boss_and_music() -> bool:
+	const HurricanBossTrigger = preload("res://scripts/objects/boss_trigger.gd")
+	const HurricanSpiderBoss = preload("res://scripts/objects/spider_boss.gd")
+	
+	print("[10/10] Testing Boss Encounter & Music Assets...")
+	assert(ResourceLoader.exists("res://assets/music/jungle.mp3"), "Jungle music must exist")
+	assert(ResourceLoader.exists("res://assets/music/boss.mp3"), "Boss music must exist")
+	
+	var trigger = HurricanBossTrigger.new()
+	root.add_child(trigger)
+	trigger._ready()
+	assert(trigger != null, "Boss trigger should initialize")
+	
+	var boss = HurricanSpiderBoss.new()
+	root.add_child(boss)
+	assert(boss.health == HurricanSpiderBoss.MAX_HP, "Boss should have full HP")
+	boss.activate_boss()
+	assert(boss.is_active, "Boss should be active")
+	boss.take_damage(50.0)
+	assert(boss.health == HurricanSpiderBoss.MAX_HP - 50.0, "Boss HP should decrease on hit")
+	
+	trigger.queue_free()
+	boss.queue_free()
+	print("  -> Boss Encounter & Music OK.")
 	return true
