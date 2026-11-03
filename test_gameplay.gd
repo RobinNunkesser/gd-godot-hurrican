@@ -263,7 +263,7 @@ func _test_boss_and_music() -> bool:
 func _test_hd_mode_and_lighting() -> bool:
 	print("[11/11] Testing HD Mode (40px tiles, 0.5 scale) & 2D Dynamic Lights...")
 	assert(ResourceLoader.exists("res://assets/textures/effects/light_glow.png"), "Radial light texture must exist")
-	assert(ResourceLoader.exists("res://assets/textures/tilesets/s_jungle_hd.png"), "HD jungle tileset must exist")
+	assert(ResourceLoader.exists("res://assets/textures/tilesets/s_Jungle_hd.png"), "HD jungle tileset must exist")
 	assert(ResourceLoader.exists("res://assets/textures/environment/back_jungle_hd.png"), "HD jungle background must exist")
 	
 	# Test Bullet Light
